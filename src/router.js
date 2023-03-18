@@ -9,6 +9,7 @@ const Upcoming = require("./controllers/upcomingtrip.ctrl");
 const Otp = require("./controllers/otp.ctrl");
 const Suggestions = require("./controllers/suggestion.ctrl");
 const User = require("./controllers/user.ctrl");
+const State = require("./controllers/state-wise.ctrl")
 
 router.use("/", Otp);
 router.post("/login", login);
@@ -20,5 +21,6 @@ router.use("/utils", authenticate, Utils);
 router.use("/cartDetails", authenticate, Cart);
 router.use("/paid", authenticate, Upcoming);
 router.use("/user", authenticate, User);
+router.use("/stateCity", State);
 
 module.exports = router;
