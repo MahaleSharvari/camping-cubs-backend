@@ -1,0 +1,8 @@
+Mongo_Url={{Mongo_Url}}
+Port={{Port}}
+clientID={{clientID}}
+clientSecret={{clientSecret}}
+callbackURL={{callback}}
+JWT_SECRET_KEY={{JWT_SECRET_KEY}}
+MailId={{MailId}}
+MailPassword={{MailPassword}}
