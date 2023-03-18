@@ -32,8 +32,8 @@ const userSchema = mongo.Schema(
         default: "",
       },
       pincode: {
-        type: Number,
-        default: 0,
+        type: String,
+        default: "",
       },
     },
   },
