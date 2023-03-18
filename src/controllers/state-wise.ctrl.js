@@ -4,7 +4,7 @@ const State = require("../schema/statecitys.schema");
 router.get("/allStates", async (req, res) => {
   try {
     const allStates = await State.distinct("state");
-    return res.status(200).send({ allStates });
+    return res.status(200).send({ allStates }).sort({ state: 1 });
   } catch (error) {
     return res.status(500).send(error);
   }
@@ -13,9 +13,9 @@ router.get("/allStates", async (req, res) => {
 router.get("/city/:state_name", async (req, res) => {
   try {
     const state_name = req.params.state_name;
-    const allCity = await State.find({ state: state_name }).select(
-      "city state latitude longitude -_id"
-    );
+    const allCity = await State.find({ state: state_name })
+      .sort({ city: 1 })
+      .select("city state latitude longitude -_id");
     return res.status(200).send({ allCity });
   } catch (error) {
     return res.status(500).send(error);
