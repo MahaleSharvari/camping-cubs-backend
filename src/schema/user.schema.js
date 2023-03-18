@@ -9,30 +9,31 @@ const userSchema = mongo.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     otpDetails: { otp: { type: Number }, otpExpiration: { type: Number } },
+    phone_number: { type: Number },
     location: {
       city: {
         type: String,
-        default:""
+        default: "",
       },
       state: {
         type: String,
-        default:""
+        default: "",
       },
       address: {
         type: String,
-        default:""
+        default: "",
       },
       latitude: {
         type: String,
-        default:""
+        default: "",
       },
       longitude: {
         type: String,
-        default:""
+        default: "",
       },
       pincode: {
         type: Number,
-        default:0
+        default: 0,
       },
     },
   },
