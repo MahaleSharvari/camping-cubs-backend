@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.patch("/:user_id", async (req, res) => {
+router.patch("/", async (req, res) => {
   try {
     const user_id = req.user._id;
     // if (req.user._id != user_id)
