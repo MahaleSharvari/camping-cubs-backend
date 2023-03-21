@@ -28,7 +28,18 @@ route.get("/campground", async (req, res) => {
 
 route.get("/campground/:id", authenticate, async (req, res) => {
   try {
-    const ground = await Campground.find({ _id: req.params.id });
+    const ground = await Campground.findById({ _id: req.params.id });
+    if (!ground)
+      return res.status(400).send({ message: "Invalid Campground Id" });
+    return res.status(200).send(ground);
+  } catch (error) {
+    return res.status(500).send(error);
+  }
+});
+
+route.get("/admin-campground/:user_id", authenticateAdmin, async (req, res) => {
+  try {
+    const ground = await Campground.find({ userId: req.params.user_id });
     if (!ground)
       return res.status(400).send({ message: "Invalid Campground Id" });
     return res.status(200).send(ground);
