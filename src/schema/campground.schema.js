@@ -58,7 +58,7 @@ const campgroundSchema = new mongoose.Schema(
         required: true,
       },
     },
-    userId: { type: mongo.Schema.Types.ObjectId, ref: "user", required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true },
     highlight: {
       type: [String],
       required: true,
