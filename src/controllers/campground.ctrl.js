@@ -37,12 +37,10 @@ route.get("/campground/:id", authenticate, async (req, res) => {
   }
 });
 
-route.get("/admin-campground/:user_id", authenticateAdmin, async (req, res) => {
+route.get("/admin-campground/", authenticateAdmin, async (req, res) => {
   try {
-    if (!req.params.user_id)
-      return res.status(400).send({ message: "User Id Required" });
-    const ground = await Campground.find({ userId: req.params.user_id });
-    if (!ground) return res.status(400).send({ message: "Invalid User Id" });
+    const ground = await Campground.find({ userId: req.user._id });
+    if (!ground) return res.status(400).send({ message: "Invalid Token" });
     return res.status(200).send(ground);
   } catch (error) {
     return res.status(500).send(error);
