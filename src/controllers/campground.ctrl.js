@@ -7,7 +7,12 @@ const {
 
 route.post("/newCampGround", authenticateAdmin, async (req, res) => {
   try {
-    const newCampGround = await Campground.create(req.body);
+    const newCampGround = await Campground.create({
+      ...req.body,
+      userId: req.user._id,
+    });
+    if (!newCampGround)
+      return res.status(400).send({ message: "Invalid Token" });
     return res.status(200).send(newCampGround);
   } catch (error) {
     console.log(error);
