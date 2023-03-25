@@ -8,7 +8,7 @@ const userSchema = mongo.Schema(
     full_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    aadhar: { type: Number, default:null},
+    aadhar: { type: Number, default: null },
     otpDetails: { otp: { type: Number }, otpExpiration: { type: Number } },
     phone_number: { type: Number },
     location: {
