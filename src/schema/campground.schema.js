@@ -18,14 +18,21 @@ const campgroundSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    rating: {
+    overallRating: {
       type: Number,
-      // default: 0,
+      default: 0,
     },
-    ratingCount: {
-      type: Number,
-      // default: 0,
-    },
+    ratings: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+          required: true,
+        },
+        rate: { type: Number },
+        review: { type: String },
+      },
+    ],
     visitCount: {
       type: Number,
       default: 0,
@@ -58,11 +65,20 @@ const campgroundSchema = new mongoose.Schema(
         required: true,
       },
     },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "user", required: true },
     highlight: {
       type: [String],
       required: true,
     },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    recommendation: {
+      type: Boolean,
+      default: false,
+    },
+    rentals: { type: String, enum: ["cottage", "tent"] },
   },
   {
     timestamps: true,

@@ -9,7 +9,12 @@ const cartSchema = mongo.Schema(
       ref: "campgrounds",
       required: true,
     },
-    days: { type: Number, required: true, default: 1 },
+    dates: [
+      {
+        type: Date,
+        required: true,
+      },
+    ],
     paid: { type: Boolean, default: false },
     details: [
       {

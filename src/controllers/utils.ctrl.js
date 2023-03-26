@@ -2,34 +2,49 @@ const route = require("express").Router();
 const Campground = require("../schema/campground.schema");
 const Cart = require("../schema/cart.schema");
 
-route.post("/rating/:id", async (req, res) => {
+route.post("/rating/:campId", async (req, res) => {
   try {
-    const campId = req.params.id;
+    const userId = req.user._id;
+    const campId = req.params.campId;
     const { userRating } = req.body;
+    const { rate, review } = userRating;
 
-    if (Number.isNaN(userRating)) {
+    const checkRated = await Campground.findOne({
+      _id: campId,
+      ratings: { $elemMatch: { userId: userId } },
+    }).select("rating ratingCount");
+
+    if (checkRated) {
+      return res.status(400).send({ message: "Already Rated By User." });
+    }
+
+    if (!userRating || !rate || !review)
+      res.status(400).send({
+        message:
+          "userRating is object that contains rate, review of customer please provide valid data",
+      });
+
+    if (Number.isNaN(rate)) {
       return res
         .status(500)
-        .send({ message: "Invalid input: rating must be a number" });
+        .send({ message: "Invalid input: rate must be a number" });
     }
 
-    const campGroud = await Campground.findOne({ _id: campId }).select(
-      "rating ratingCount"
-    );
-
-    if (campGroud.length === 0) {
-      return res.status(400).send({ message: "Campground not found" });
-    }
+    const campGround = await Campground.findOne({
+      _id: campId,
+    }).select("rating ratingCount");
 
     const newRating =
-      campGroud.ratingCount == 0
-        ? userRating
-        : (userRating + campGroud.rating) / 2;
-    const newRatingCount = campGroud.ratingCount + 1;
+      campGround.ratingCount == 0
+        ? rate
+        : (rate + campGround.overallRating) / 2;
 
     const updateRating = await Campground.findByIdAndUpdate(
       { _id: campId },
-      { rating: newRating, ratingCount: newRatingCount },
+      {
+        overallRating: newRating,
+        $push: { ratings: { userId, ...userRating } },
+      },
       { new: true }
     );
     return res.status(200).send(updateRating);
@@ -41,12 +56,24 @@ route.post("/rating/:id", async (req, res) => {
 
 route.post("/showRating", async (req, res) => {
   try {
-    const { userId, campId } = req.body;
+    const userId = req.user._id;
+    const { campId } = req.body;
     if (!userId || !campId)
-      return res.status(400).send({ message: "Missing campId, userId" });
+      return res
+        .status(400)
+        .send({ message: "Missing campId or Invalid Token" });
 
-    const findInCart = await Cart.findOne({ userId, campId });
-    if (!findInCart) return res.status(200).send({ shouldShow: false });
+    const findInCart = await Cart.findOne({
+      userId,
+      campId,
+      paid: true,
+      "dates.0": { $lt: new Date() },
+      "dates.1": { $lt: new Date() },
+    });
+
+    if (Object.keys(findInCart).length === 0)
+      return res.status(200).send({ shouldShow: false });
+
     return res.status(200).send({ shouldShow: true });
   } catch (error) {
     return res.status(500).send(error);
@@ -54,9 +81,7 @@ route.post("/showRating", async (req, res) => {
 });
 
 route.post("/filters", async (req, res) => {
-  const {
-    body: { filters, query },
-  } = req;
+  const { filters, query } = req.body;
 
   if (!filters || !query) {
     return res.status(400).send({ message: "Missing filters, query" });
@@ -65,13 +90,10 @@ route.post("/filters", async (req, res) => {
   const requiredFields = [
     "maxRating",
     "minRating",
-    "rating",
     "maxPrice",
     "minPrice",
-    "price",
     "latitude",
     "longitude",
-    "distance",
   ];
 
   const missingFields = requiredFields.filter((field) => !filters[field]);
@@ -86,14 +108,47 @@ route.post("/filters", async (req, res) => {
     const {
       maxRating,
       minRating,
-      rating,
       maxPrice,
       minPrice,
-      price,
       latitude,
       longitude,
+      rentals,
+      overallRating,
+      price,
       distance,
+      visitCount,
     } = filters;
+
+    const baseFilters = {
+      price: { $gte: minPrice, $lte: maxPrice },
+      overallRating: { $gte: minRating, $lte: maxRating },
+    };
+
+    const matchFilters =
+      query.trim().length > 0
+        ? rentals.length > 0
+          ? {
+              rentals: { $in: rentals },
+              ...baseFilters,
+            }
+          : {
+              name: { $regex: query, $options: "i" },
+              ...baseFilters,
+            }
+        : rentals.length > 0
+        ? {
+            ...baseFilters,
+            rentals: { $in: rentals },
+          }
+        : baseFilters;
+
+    let sortFilters = {};
+    if (overallRating === 1 || overallRating === -1)
+      sortFilters["overallRating"] = overallRating;
+    if (price === 1 || price === -1) sortFilters["price"] = price;
+    if (distance === 1 || distance === -1) sortFilters["distance"] = distance;
+    if (visitCount === 1 || visitCount === -1)
+      sortFilters["visitCount"] = visitCount;
 
     const filteredData = await Campground.aggregate([
       {
@@ -107,18 +162,10 @@ route.post("/filters", async (req, res) => {
         },
       },
       {
-        $match: {
-          name: { $regex: query, $options: "i" },
-          price: { $gte: minPrice, $lte: maxPrice },
-          rating: { $gte: minRating, $lte: maxRating },
-        },
+        $match: matchFilters,
       },
       {
-        $sort: {
-          distance,
-          price,
-          rating,
-        },
+        $sort: sortFilters,
       },
     ]);
 

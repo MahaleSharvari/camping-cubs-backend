@@ -540,11 +540,14 @@ const extractNameFromEmail = (email) => {
   return capitalizedName;
 };
 
+const randomBoolean = () => Math.random() >= 0.5;
+
 module.exports = {
   generateOTP,
   extractNameFromEmail,
   extractNumbersFromString,
   chatQAJson,
+  randomBoolean,
   findBestMatch,
   removeDuplicates,
   getRandomInt,

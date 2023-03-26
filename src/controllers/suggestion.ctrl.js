@@ -3,13 +3,12 @@ const Campground = require("../schema/campground.schema");
 
 router.post("/", async (req, res) => {
   try {
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, minPrice, maxPrice } = req.body;
 
     if (!latitude || !longitude) {
       return res.status(400).send({ message: "Missing latitude or longitude" });
     }
-
-    let suggestedCampground = await Campground.aggregate([
+    let aggQuery = [
       {
         $geoNear: {
           near: {
@@ -21,7 +20,19 @@ router.post("/", async (req, res) => {
         },
       },
       { $sort: { distance: 1 } },
-    ]);
+    ];
+    if (minPrice && maxPrice) {
+      aggQuery = [
+        ...aggQuery,
+        {
+          $match: {
+            price: { $gte: minPrice, $lte: maxPrice },
+          },
+        },
+      ];
+    }
+
+    let suggestedCampground = await Campground.aggregate(aggQuery);
     const result =
       suggestedCampground.length > 5
         ? suggestedCampground

@@ -3,7 +3,10 @@ const Cart = require("../schema/cart.schema");
 
 route.post("/addItem", async (req, res) => {
   try {
-    const newCart = await Cart.create(req.body);
+    const userId = req.user._id;
+    if (!userId) res.status(400).send({ message: "Invalid Token" });
+    const newCart = await Cart.create({ userId, ...req.body });
+    if (!newCart) res.status(400).send({ message: "Invalid Data Provided" });
     return res.status(200).send(newCart);
   } catch (error) {
     return res.status(500).send(error);
@@ -12,9 +15,9 @@ route.post("/addItem", async (req, res) => {
 
 route.get("/cart", async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user._id;
     if (!userId) return res.status(400).send({ message: "Invalid userId" });
-    const allCart = await Cart.find({ userId });
+    const allCart = await Cart.find({ userId, paid: false });
     if (!allCart) return res.status(400).send({ message: "Invalid userId" });
     return res.status(200).send(allCart);
   } catch (error) {
@@ -23,11 +26,15 @@ route.get("/cart", async (req, res) => {
   }
 });
 
-route.get("/cart/:cartId", async (req, res) => {
+route.get("/cart/:campId", async (req, res) => {
   try {
-    const singleCart = await Cart.findOne({ _id: req.params.cartId }).populate(
-      "campId"
-    );
+    const userId = req.user._id;
+    const singleCart = await Cart.findOne({
+      campId: req.params.campId,
+      userId,
+      paid: true,
+      "dates.1": { $gt: new Date() },
+    }).populate("campId");
     if (!singleCart) return res.status(400).send({ message: "Invalid cartId" });
     return res.status(200).send(singleCart);
   } catch (error) {

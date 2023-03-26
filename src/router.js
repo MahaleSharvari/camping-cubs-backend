@@ -9,18 +9,20 @@ const Upcoming = require("./controllers/upcomingtrip.ctrl");
 const Otp = require("./controllers/otp.ctrl");
 const Suggestions = require("./controllers/suggestion.ctrl");
 const User = require("./controllers/user.ctrl");
-const State = require("./controllers/state-wise.ctrl")
+const State = require("./controllers/state-wise.ctrl");
+const Wishlist = require("./controllers/wishlist.ctrl");
 
 router.use("/", Otp);
 router.post("/login", login);
 router.post("/register", register);
 router.use("/chat", ChatBot);
 router.use("/camps", CampGround);
+router.use("/stateCity", State);
 router.use("/suggestions", authenticate, Suggestions);
 router.use("/utils", authenticate, Utils);
-router.use("/cartDetails", authenticate, Cart);
+router.use("/buySlots", authenticate, Cart);
 router.use("/paid", authenticate, Upcoming);
 router.use("/user", authenticate, User);
-router.use("/stateCity", State);
+router.use("/wishlist", authenticate, Wishlist);
 
 module.exports = router;
