@@ -25,4 +25,22 @@ router.use("/paid", authenticate, Upcoming);
 router.use("/user", authenticate, User);
 router.use("/wishlist", authenticate, Wishlist);
 
+
+const Campground= require("./schema/campground.schema")
+const { randomBoolean } = require("./utils/common.utils");
+router.post("/add-camp", async(req,res)=>{
+    const userId = "6418a4ffd447aed306f9f0f4"
+    try {
+        const newCampGround = await Campground.create({
+          recommendation: randomBoolean(),
+          userId,
+          ...req.body,
+        });
+        return res.status(200).send(newCampGround);
+      } catch (error) {
+        console.log(error);
+        return res.status(500).send(error);
+      }
+});
+
 module.exports = router;
