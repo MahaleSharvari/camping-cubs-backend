@@ -125,6 +125,7 @@ route.post("/filters", async (req, res) => {
       query && query.trim().length > 0
         ? rentals && rentals.length > 0
           ? {
+              name: { $regex: query, $options: "i" },
               rentals: { $in: rentals },
               ...baseFilters,
             }
@@ -132,7 +133,7 @@ route.post("/filters", async (req, res) => {
               name: { $regex: query, $options: "i" },
               ...baseFilters,
             }
-        : rentals.length > 0
+        : rentals && rentals.length > 0
         ? {
             ...baseFilters,
             rentals: { $in: rentals },
