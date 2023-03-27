@@ -87,18 +87,8 @@ route.post("/filters", async (req, res) => {
     return res.status(400).send({ message: "Missing filters, query" });
   }
 
-  const requiredFields = ["maxRating", "minRating", "maxPrice", "minPrice"];
-
-  const missingFields = requiredFields.filter((field) => !filters[field]);
-
-  if (missingFields.length > 0) {
-    return res.status(400).send({
-      message: `Missing ${missingFields.join(", ")}`,
-    });
-  }
-
   try {
-    const {
+    let {
       maxRating,
       minRating,
       maxPrice,
@@ -110,16 +100,29 @@ route.post("/filters", async (req, res) => {
       price,
       distance,
       visitCount,
+      recommendation,
     } = filters;
 
+    if (!minPrice) {
+      minPrice = 500;
+    }
+    if (!maxPrice) {
+      maxPrice = 15000;
+    }
+    if (!minRating) {
+      minRating = 0;
+    }
+    if (!maxRating) {
+      maxRating = 5;
+    }
     const baseFilters = {
       price: { $gte: minPrice, $lte: maxPrice },
       overallRating: { $gte: minRating, $lte: maxRating },
     };
 
-    const matchFilters =
-      query.trim().length > 0
-        ? rentals.length > 0
+    let matchFilters =
+      query && query.trim().length > 0
+        ? rentals && rentals.length > 0
           ? {
               rentals: { $in: rentals },
               ...baseFilters,
@@ -134,6 +137,10 @@ route.post("/filters", async (req, res) => {
             rentals: { $in: rentals },
           }
         : baseFilters;
+
+    recommendation != undefined
+      ? (matchFilters = { ...matchFilters, recommendation: recommendation })
+      : (matchFilters = matchFilters);
 
     let sortFilters = {};
     if (overallRating === 1 || overallRating === -1)
@@ -154,20 +161,20 @@ route.post("/filters", async (req, res) => {
 
     latitude && longitude
       ? (aggQuery = [
-        {
-          $geoNear: {
-            near: {
-              type: "Point",
-              coordinates: [parseFloat(latitude), parseFloat(longitude)],
+          {
+            $geoNear: {
+              near: {
+                type: "Point",
+                coordinates: [parseFloat(latitude), parseFloat(longitude)],
+              },
+              distanceField: "distance",
+              spherical: true,
             },
-            distanceField: "distance",
-            spherical: true,
           },
-        },
           ...aggQuery,
         ])
-      : aggQuery = aggQuery;
-    
+      : (aggQuery = aggQuery);
+
     const filteredData = await Campground.aggregate(aggQuery);
 
     return res.status(200).json(filteredData);
