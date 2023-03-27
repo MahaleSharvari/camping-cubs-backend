@@ -3,7 +3,7 @@ const Campground = require("../schema/campground.schema");
 
 router.post("/", async (req, res) => {
   try {
-    const { latitude, longitude, minPrice, maxPrice } = req.body;
+    const { latitude, longitude, price } = req.body;
 
     if (!latitude || !longitude) {
       return res.status(400).send({ message: "Missing latitude or longitude" });
@@ -21,12 +21,17 @@ router.post("/", async (req, res) => {
       },
       { $sort: { distance: 1 } },
     ];
-    if (minPrice && maxPrice) {
+    
+    if (price && price.length > 0) {
+      data = [];
+      price.map((e) => {
+        data.push({ $gte: e[0], $lte: e[1] });
+      });
       aggQuery = [
         ...aggQuery,
         {
           $match: {
-            price: { $gte: minPrice, $lte: maxPrice },
+            price: { $in: data },
           },
         },
       ];
