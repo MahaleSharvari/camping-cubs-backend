@@ -87,14 +87,7 @@ route.post("/filters", async (req, res) => {
     return res.status(400).send({ message: "Missing filters, query" });
   }
 
-  const requiredFields = [
-    "maxRating",
-    "minRating",
-    "maxPrice",
-    "minPrice",
-    "latitude",
-    "longitude",
-  ];
+  const requiredFields = ["maxRating", "minRating", "maxPrice", "minPrice"];
 
   const missingFields = requiredFields.filter((field) => !filters[field]);
 
@@ -150,24 +143,32 @@ route.post("/filters", async (req, res) => {
     if (visitCount === 1 || visitCount === -1)
       sortFilters["visitCount"] = visitCount;
 
-    const filteredData = await Campground.aggregate([
-      {
-        $geoNear: {
-          near: {
-            type: "Point",
-            coordinates: [parseFloat(latitude), parseFloat(longitude)],
-          },
-          distanceField: "distance",
-          spherical: true,
-        },
-      },
+    let aggQuery = [
       {
         $match: matchFilters,
       },
       {
         $sort: sortFilters,
       },
-    ]);
+    ];
+
+    latitude && longitude
+      ? (aggQuery = [
+        {
+          $geoNear: {
+            near: {
+              type: "Point",
+              coordinates: [parseFloat(latitude), parseFloat(longitude)],
+            },
+            distanceField: "distance",
+            spherical: true,
+          },
+        },
+          ...aggQuery,
+        ])
+      : aggQuery = aggQuery;
+    
+    const filteredData = await Campground.aggregate(aggQuery);
 
     return res.status(200).json(filteredData);
   } catch (error) {
