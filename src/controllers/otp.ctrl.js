@@ -88,6 +88,7 @@ router.post("/checkOtp", async (req, res) => {
   }
 });
 
+
 router.post("/resetpassword", async (req, res) => {
   try {
     const { password, email } = req.body;
