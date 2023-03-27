@@ -46,17 +46,12 @@ route.get("/campground", authenticate, async (req, res) => {
     let allGround = await Campground.find().select(
       "name visitCount overallRating price images location.city location.state visitCount recommendation"
     );
-    if (allWishlist.length > 0) {
-      const ids = allWishlist.map((e) => e.campground);
-      allGround = allGround.map((e) => {
-        if (ids.includes(e._id)) {
-          e = { ...e, wishlist: true };
-        } else {
-          e = { ...e, wishlist: false };
-        }
-      });
-    }
-    return res.status(200).send({ data: allGround });
+    const ids = allWishlist.map((e) => e.campground);
+    const response = allGround.map((e) => ({
+      ...e._doc,
+      wishlist: ids.includes(e._id),
+    }));
+    return res.status(200).send({ data: response });
   } catch (error) {
     return res.status(500).send(error);
   }
@@ -70,17 +65,18 @@ route.get("/campground/:id", authenticate, async (req, res) => {
       path: "ratings.userId",
       select: "full_name",
     });
+
     if (!ground)
       return res.status(400).send({ message: "Invalid Campground Id" });
-    const allWishlist = await Wishlist.find({
+
+    const allWishlist = await Wishlist.findOne({
       user: userId,
       campground: req.params.id,
     }).select("campground");
-    if (allWishlist.length > 0) {
-      ground = { ...ground, wishlist: true };
-    } else {
-      ground = { ...ground, wishlist: false };
-    }
+
+    allWishlist && allWishlist.campground === userId
+      ? (ground = { ...ground._doc, wishlist: true })
+      : (ground = { ...ground._doc, wishlist: false });
 
     return res.status(200).send(ground);
   } catch (error) {
