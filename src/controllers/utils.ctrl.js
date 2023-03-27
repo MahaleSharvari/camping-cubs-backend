@@ -1,6 +1,7 @@
 const route = require("express").Router();
 const Campground = require("../schema/campground.schema");
 const Cart = require("../schema/cart.schema");
+const Wishlist = require("../schema/wishlist.schema");
 
 route.post("/rating/:campId", async (req, res) => {
   try {
@@ -176,8 +177,17 @@ route.post("/filters", async (req, res) => {
       : (aggQuery = aggQuery);
 
     const filteredData = await Campground.aggregate(aggQuery);
+    const allWishlist = await Wishlist.find({ user: req.user._id }).select(
+      "campground"
+    );
 
-    return res.status(200).json(filteredData);
+    if (!allWishlist) res.status(400).send({ message: "Invalid Token" });
+    const ids = allWishlist.map((e) => e.campground);
+    const response = filteredData.map((e) => ({
+      ...e._doc,
+      wishlist: ids.includes(e._id),
+    }));
+    return res.status(200).send({ data: response });
   } catch (error) {
     console.log(error);
     return res.status(500).send(error);
