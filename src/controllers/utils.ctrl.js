@@ -84,7 +84,7 @@ route.post("/showRating", async (req, res) => {
 route.post("/filters", async (req, res) => {
   const { filters, query } = req.body;
 
-  if (filters=undefined || query==undefined) {
+  if (filters==undefined || query==undefined) {
     return res.status(400).send({ message: "Missing filters, query" });
   }
 
@@ -156,11 +156,13 @@ route.post("/filters", async (req, res) => {
       {
         $match: matchFilters,
       },
-      {
-        $sort: sortFilters,
-      },
     ];
+    if(Object.keys(sortFilters).length>0){
 
+      aggQuery = [...aggQuery,{
+        $sort: sortFilters,
+      }]
+    }
     latitude && longitude
       ? (aggQuery = [
           {
@@ -185,7 +187,7 @@ route.post("/filters", async (req, res) => {
     if (!allWishlist) res.status(400).send({ message: "Invalid Token" });
     const ids = allWishlist.map((e) => e.campground);
     const response = filteredData.map((e) => ({
-      ...e._doc,
+      ...e,
       wishlist: ids.includes(e._id),
     }));
     return res.status(200).send({ data: response });
