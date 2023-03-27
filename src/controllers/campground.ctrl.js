@@ -86,9 +86,7 @@ route.get("/campground/:id", authenticate, async (req, res) => {
 
 route.get("/admin-campground/", authenticateAdmin, async (req, res) => {
   try {
-    const ground = await Campground.find({ userId: req.user._id }).select(
-      "name visitCount overallRating price images location.city location.state visitCount recommendation"
-    );
+    const ground = await Campground.find({ userId: req.user._id })
     if (!ground) return res.status(400).send({ message: "Invalid Token" });
     return res.status(200).send(ground);
   } catch (error) {
