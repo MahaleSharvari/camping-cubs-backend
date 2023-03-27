@@ -84,7 +84,7 @@ route.post("/showRating", async (req, res) => {
 route.post("/filters", async (req, res) => {
   const { filters, query } = req.body;
 
-  if (!filters || !query) {
+  if (filters=undefined || query==undefined) {
     return res.status(400).send({ message: "Missing filters, query" });
   }
 
