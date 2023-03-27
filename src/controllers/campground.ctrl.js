@@ -50,9 +50,9 @@ route.get("/campground", authenticate, async (req, res) => {
       const ids = allWishlist.map((e) => e.campground);
       allGround = allGround.map((e) => {
         if (ids.includes(e._id)) {
-          return { ...e, wishlist: true };
+          e = { ...e, wishlist: true };
         } else {
-          return { ...e, wishlist: false };
+          e = { ...e, wishlist: false };
         }
       });
     }
