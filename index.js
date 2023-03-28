@@ -9,6 +9,7 @@ const route = require("./src/router");
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 
 // After you declare "app"
 app.use("/api/v1", route);

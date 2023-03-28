@@ -78,7 +78,7 @@ const campgroundSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    rentals: { type: String, enum: ["cottage", "tent"] },
+    rentals: { type: String, enum: ["cottage", "tent"], default: "tent" },
   },
   {
     timestamps: true,
