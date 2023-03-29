@@ -24,6 +24,11 @@ const cartSchema = mongo.Schema(
         govId: { type: String, require: true },
       },
     ],
+    days: {
+      type: Number,
+      require: true,
+      default: null,
+    },
   },
   {
     timestamps: true,

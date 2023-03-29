@@ -84,7 +84,7 @@ route.post("/showRating", async (req, res) => {
 route.post("/filters", async (req, res) => {
   const { filters, query } = req.body;
 
-  if (filters==undefined || query==undefined) {
+  if (filters == undefined || query == undefined) {
     return res.status(400).send({ message: "Missing filters, query" });
   }
 
@@ -101,7 +101,7 @@ route.post("/filters", async (req, res) => {
       price,
       distance,
       visitCount,
-      recommendation,
+      recommendation
     } = filters;
 
     if (!minPrice) {
@@ -141,7 +141,7 @@ route.post("/filters", async (req, res) => {
         : baseFilters;
 
     recommendation != undefined
-      ? (matchFilters = { ...matchFilters, recommendation: recommendation })
+      ? (matchFilters = { ...matchFilters, recommendation })
       : (matchFilters = matchFilters);
 
     let sortFilters = {};
@@ -157,11 +157,13 @@ route.post("/filters", async (req, res) => {
         $match: matchFilters,
       },
     ];
-    if(Object.keys(sortFilters).length>0){
-
-      aggQuery = [...aggQuery,{
-        $sort: sortFilters,
-      }]
+    if (Object.keys(sortFilters).length > 0) {
+      aggQuery = [
+        ...aggQuery,
+        {
+          $sort: sortFilters,
+        },
+      ];
     }
     latitude && longitude
       ? (aggQuery = [
