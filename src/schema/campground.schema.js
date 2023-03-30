@@ -31,6 +31,7 @@ const campgroundSchema = new mongoose.Schema(
         },
         rate: { type: Number },
         review: { type: String },
+        userName: { type: String },
       },
     ],
     visitCount: {

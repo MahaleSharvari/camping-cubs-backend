@@ -2,7 +2,7 @@ const route = require("express").Router();
 const Campground = require("../schema/campground.schema");
 const Cart = require("../schema/cart.schema");
 const Wishlist = require("../schema/wishlist.schema");
-const { ObjectId } = require("mongoose");
+const MainUser = require("../schema/user.schema");
 
 route.post("/rating/:campId", async (req, res) => {
   try {
@@ -13,13 +13,13 @@ route.post("/rating/:campId", async (req, res) => {
     const checkRated = await Campground.findOne({
       _id: campId,
       ratings: { $elemMatch: { userId: userId } },
-    }).select("rating ratingCount");
+    }).select("rating");
 
     if (checkRated) {
       return res.status(400).send({ message: "Already Rated By User." });
     }
 
-    if (!rate || !review)
+    if ((!rate && rate != 0) || !review)
       res.status(400).send({
         message: "rate, review is required please provide valid data.",
       });
@@ -27,6 +27,10 @@ route.post("/rating/:campId", async (req, res) => {
     const campGround = await Campground.findOne({
       _id: campId,
     }).select("ratings overallRating");
+
+    const userName = await MainUser.findById({ _id: userId }).select(
+      "full_name"
+    );
 
     const newRating =
       campGround.ratings.length === 0
@@ -38,11 +42,17 @@ route.post("/rating/:campId", async (req, res) => {
       {
         overallRating: newRating,
         $push: {
-          ratings: { userId, rate, review },
+          ratings: {
+            userId: userName._id,
+            userName: userName.full_name,
+            rate,
+            review,
+          },
         },
       },
       { new: true }
     );
+
     return res.status(200).send(updateRating);
   } catch (error) {
     console.log(error.message);
