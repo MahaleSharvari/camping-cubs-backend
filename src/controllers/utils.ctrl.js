@@ -3,12 +3,12 @@ const Campground = require("../schema/campground.schema");
 const Cart = require("../schema/cart.schema");
 const Wishlist = require("../schema/wishlist.schema");
 const { ObjectId } = require("mongoose");
+
 route.post("/rating/:campId", async (req, res) => {
   try {
     const userId = req.user._id;
-    const campId = req.params.campId;
-    const { userRating } = req.body;
-    const { rate, review } = userRating;
+    const { campId } = req.params;
+    const { rate, review } = req.body;
 
     const checkRated = await Campground.findOne({
       _id: campId,
@@ -19,24 +19,17 @@ route.post("/rating/:campId", async (req, res) => {
       return res.status(400).send({ message: "Already Rated By User." });
     }
 
-    if (!userRating || !rate || !review)
+    if (!rate || !review)
       res.status(400).send({
-        message:
-          "userRating is object that contains rate, review of customer please provide valid data",
+        message: "rate, review is required please provide valid data.",
       });
-
-    if (Number.isNaN(rate)) {
-      return res
-        .status(500)
-        .send({ message: "Invalid input: rate must be a number" });
-    }
 
     const campGround = await Campground.findOne({
       _id: campId,
-    }).select("rating ratingCount");
+    }).select("ratings overallRating");
 
     const newRating =
-      campGround.ratingCount == 0
+      campGround.ratings.length === 0
         ? rate
         : (rate + campGround.overallRating) / 2;
 
@@ -44,7 +37,9 @@ route.post("/rating/:campId", async (req, res) => {
       { _id: campId },
       {
         overallRating: newRating,
-        $push: { ratings: { userId, ...userRating } },
+        $push: {
+          ratings: { userId, rate, review },
+        },
       },
       { new: true }
     );
