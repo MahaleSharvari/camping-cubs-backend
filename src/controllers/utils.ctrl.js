@@ -13,7 +13,7 @@ route.post("/rating/:campId", async (req, res) => {
     const checkRated = await Campground.findOne({
       _id: campId,
       ratings: { $elemMatch: { userId: userId } },
-    }).select("rating");
+    }).select("_id");
 
     if (checkRated) {
       return res.status(400).send({ message: "Already Rated By User." });
@@ -60,25 +60,23 @@ route.post("/rating/:campId", async (req, res) => {
   }
 });
 
-route.post("/showRating", async (req, res) => {
+route.get("/showRating/:campId", async (req, res) => {
   try {
     const userId = req.user._id;
-    const { campId } = req.body;
+    const { campId } = req.params;
     if (!userId || !campId)
       return res
         .status(400)
         .send({ message: "Missing campId or Invalid Token" });
 
-    const findInCart = await Cart.findOne({
-      userId,
-      campId,
-      paid: true,
-      "dates.0": { $lt: new Date() },
-      "dates.1": { $lt: new Date() },
-    });
+    const checkRated = await Campground.findOne({
+      _id: campId,
+      ratings: { $elemMatch: { userId: userId } },
+    }).select("_id");
 
-    if (Object.keys(findInCart).length === 0)
+    if (checkRated) {
       return res.status(200).send({ shouldShow: false });
+    }
 
     return res.status(200).send({ shouldShow: true });
   } catch (error) {
