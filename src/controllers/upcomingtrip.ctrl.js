@@ -42,17 +42,17 @@ route.get("/upcomingTrips", async (req, res) => {
       "dates.0": { $lt: new Date() },
       "dates.1": { $lt: new Date() },
     });
+    const currentTrip = await Cart.find({
+      userId,
+      paid: true,
+      "dates.0": { $lte: new Date() },
+      "dates.1": { $gte: new Date() },
+    });
     const upcomingTrips = await Cart.find({
       userId,
       paid: true,
       "dates.0": { $gt: new Date() },
       "dates.1": { $gt: new Date() },
-    });
-    const currentTrip = await Cart.find({
-      userId,
-      paid: true,
-      "dates.0": { $gte: new Date() },
-      "dates.1": { $lte: new Date() },
     });
     if (!previousTrips || !upcomingTrips || !currentTrip)
       res.status(400).send({ message: "Invalid userId" });
