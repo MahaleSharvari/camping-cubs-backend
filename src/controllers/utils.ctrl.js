@@ -2,7 +2,7 @@ const route = require("express").Router();
 const Campground = require("../schema/campground.schema");
 const Cart = require("../schema/cart.schema");
 const Wishlist = require("../schema/wishlist.schema");
-
+const { ObjectId } = require("mongoose");
 route.post("/rating/:campId", async (req, res) => {
   try {
     const userId = req.user._id;
@@ -101,7 +101,7 @@ route.post("/filters", async (req, res) => {
       price,
       distance,
       visitCount,
-      recommendation
+      recommendation,
     } = filters;
 
     if (!minPrice) {
@@ -185,12 +185,11 @@ route.post("/filters", async (req, res) => {
     const allWishlist = await Wishlist.find({ user: req.user._id }).select(
       "campground"
     );
-
     if (!allWishlist) res.status(400).send({ message: "Invalid Token" });
-    const ids = allWishlist.map((e) => e.campground);
+    const ids = allWishlist.map((e) => e.campground.toString());
     const response = filteredData.map((e) => ({
       ...e,
-      wishlist: ids.includes(e._id),
+      wishlist: ids.includes(e._id.toString()),
     }));
     return res.status(200).send({ data: response });
   } catch (error) {
