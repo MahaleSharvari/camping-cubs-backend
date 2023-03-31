@@ -10,7 +10,6 @@ passport.use(
     {
       clientID: process.env.clientID,
       clientSecret: process.env.clientSecret,
-      callbackURL: process.env.callbackURL,
       passReqToCallback: true,
     },
     async function (request, accessToken, refreshToken, profile, done) {
