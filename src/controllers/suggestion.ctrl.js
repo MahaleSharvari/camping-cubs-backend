@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Campground = require("../schema/campground.schema");
+const Wishlist = require("../schema/wishlist.schema");
 
 router.post("/", async (req, res) => {
   try {
@@ -76,7 +77,6 @@ router.post("/", async (req, res) => {
         ...aggQuery,
         { $match }
       ]);
-      // break
       const top5 =
         suggestedCampground.length > 5
           ? suggestedCampground
@@ -84,8 +84,16 @@ router.post("/", async (req, res) => {
               .sort((a, b) => b.overallRating - a.overallRating)
               .concat(suggestedCampground.slice(5))
           : suggestedCampground;
+      const allWishlist = await Wishlist.find({ user: req.user._id }).select(
+        "campground"
+      );
+      const ids = allWishlist.map((e) => e._id.toString());
       if (top5.length > 0) {
-        response[e] = top5;
+        let temp = top5.map((e) => ({
+          ...e,
+          wishlist: ids.includes(e._id.toString()),
+        }));
+        response[e] = temp;
       }
     }
     return res.status(200).send(response);
